@@ -1,0 +1,30 @@
+device.on("sendtoapp", function(json) {
+    local url = "http://gwaas-prod-ap1.numerexfast.com:8080/numerex_services/delivery/message/message"
+    local headers = { "Content-Type": "application/json", "Authorization":"Basic YW5kcmV3aXN0aGVjb29sZXN0OmFuZHJld2lzdGhlY29vbGVzdA==" }
+    local bodyJson = http.jsonencode(json)
+    local headersJson = http.jsonencode(headers)
+
+    server.log("----")
+    server.log("send url=<" + url + ">")
+    server.log("send headers=<" + headersJson + ">")
+    server.log("send json=<" + bodyJson + ">")
+    http.post(url, headers, bodyJson).sendsync()
+})
+
+device.on("sendtoxively", function (json) {
+    local feedKey = "1853039415"
+    local apiKey = "nxYuV4hsrSlPdKJHc5toUdnazckQEqEa9PBF6Vi8YSHYhpjv"
+    local url = "https://api.xively.com/v2/feeds/" + feedKey + ".json";
+    local headers = {"X-ApiKey":apiKey, "Content-Type":"application/json", "User-Agent":"Xively-Imp-Lib/1.0"}
+    
+    local bodyJson = http.jsonencode(json)
+    local headersJson = http.jsonencode(headers)
+    
+    server.log("----")
+    server.log("send url=<" + url + ">")
+    server.log("send headers=<" + headersJson + ">")
+    server.log("send json=<" + bodyJson + ">")
+    http.put(url, headers, bodyJson).sendsync()
+    
+})
+
