@@ -8,59 +8,13 @@ temp.configure(ANALOG_IN)
 state <- 0.0
 tempF <- 0.0
 
-blinkFrequency <- 1.0
+blinkFrequency <- 2.0
 tempFrequency <- blinkFrequency
 
 function blink() {
-    state = 1 - state
+    state = (1 - state)
     led.write(state)
     imp.wakeup(blinkFrequency, blink)
-}
-
-function getGWaaSJson(tempF) {
-    local uuid = math.rand() + "" + math.rand() + "" + math.rand()
-    local date = date();
-    local timestamp = format("%04d-%02d-%02dT%02d:%02d:%02d.000+0000", date.year, date.month+1, date.day, date.hour, date.min, date.sec);
-    
-     local json = { 
-        "id": uuid,
-        "type": "reading",
-        "timestamp": timestamp,
-        "data": {
-            "device_name": imp.getmacaddress(),
-            "device_name_type":"imei",
-            "temperatureF":tempF 
-        },
-        "headers": {
-        }
-    }
-    return json    
-}
-
-function getXivelyJson1(tempF) {
-    local json = {
-        "version": "1.0.0",
-        "datastreams" : [ {
-            "datapoints": [],
-            "id": "temperatureF",
-            "current_value": tempF
-        } ]
-    }
-    return json
-}
-
-function getXivelyJson(tempF) {
-    local json = {
-        "version":"1.0.0",
-        "datastreams":[
-            {"id":"temperatureF", 
-            "current_value": tempF
-            "mix_value": "-20",
-            "max_value": "120",
-            }
-        ]
-    }
-    return json
 }
 
 function getTemp() {
@@ -75,9 +29,30 @@ function getTemp() {
     if (tempF < 0.0 || tempF > 200.00) {
         tempF = 0.0
     }
+
+    local gwaasDataTable = {
+        "temperatureF": tempF,
+    }
     
-    agent.send("sendtoapp", getGWaaSJson(tempF))
-    agent.send("sendtoxively", getXivelyJson(tempF))
+    local gwaasFeedData = {
+        "macAddress": imp.getmacaddress(),
+        "json": gwaasDataTable
+    }
+
+    local xivelyDataTable = [
+        {"id":"temperatureF", "current_value": tempF },
+        {"id":"sensorReading", "current_value": sensorReading }
+    ]
+    
+    local xivelyFeedData = {
+        "feedKey": imp.getmacaddress(),
+        "json": xivelyDataTable
+    }
+    
+    agent.send("sendtogwaas", gwaasFeedData)
+    agent.send("sendtoapp", gwaasFeedData)
+    agent.send("sendtoxively", xivelyFeedData)
+    
     imp.wakeup(tempFrequency, getTemp)
 }
 
