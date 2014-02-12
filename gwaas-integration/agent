@@ -1,30 +1,70 @@
-device.on("sendtoapp", function(json) {
+device.on("sendtoapp", function(gwaasFeedData) {
     local url = "http://gwaas-prod-ap1.numerexfast.com:8080/numerex_services/delivery/message/message"
     local headers = { "Content-Type": "application/json", "Authorization":"Basic YW5kcmV3aXN0aGVjb29sZXN0OmFuZHJld2lzdGhlY29vbGVzdA==" }
-    local bodyJson = http.jsonencode(json)
-    local headersJson = http.jsonencode(headers)
-
     server.log("----")
-    server.log("send url=<" + url + ">")
-    server.log("send headers=<" + headersJson + ">")
-    server.log("send json=<" + bodyJson + ">")
-    http.post(url, headers, bodyJson).sendsync()
+    server.log("SEND TO APP")
+    postToGWaaSStyleApp(url, headers, gwaasFeedData)
 })
 
-device.on("sendtoxively", function (json) {
-    local feedKey = "1853039415"
+device.on("sendtogwaas", function(gwaasFeedData) {
+    local url = "https://gwaas-dev-sv1.numerexdevops.com/raw-messages/route"
+    local headers = { "Content-Type": "application/json", "Authorization":"Basic Z3dhYXM6ZTlBWFhNcVU=" }
+    server.log("----")
+    server.log("SEND TO GWAAS")
+    postToGWaaSStyleApp(url, headers, gwaasFeedData)
+})
+
+device.on("sendtoxively", function (xivelyFeedData) {
     local apiKey = "nxYuV4hsrSlPdKJHc5toUdnazckQEqEa9PBF6Vi8YSHYhpjv"
-    local url = "https://api.xively.com/v2/feeds/" + feedKey + ".json";
+    //local url = "https://api.xively.com/v2/feeds/" + xivelyFeedData["feedKey"] + ".json";
+    local url = "https://api.xively.com/v2/feeds/" + "1853039415" + ".json";
     local headers = {"X-ApiKey":apiKey, "Content-Type":"application/json", "User-Agent":"Xively-Imp-Lib/1.0"}
     
-    local bodyJson = http.jsonencode(json)
+    local bodyJson = http.jsonencode(xivelyFeedData["json"])
     local headersJson = http.jsonencode(headers)
     
     server.log("----")
+    server.log("SEND TO XIVELY")
     server.log("send url=<" + url + ">")
     server.log("send headers=<" + headersJson + ">")
     server.log("send json=<" + bodyJson + ">")
     http.put(url, headers, bodyJson).sendsync()
-    
 })
 
+function postToGWaaSStyleApp(url, headers, gwaasFeedData) {
+    local bodyJson = http.jsonencode(getGWaaSJson(gwaasFeedData))
+    local headersJson = http.jsonencode(headers)
+
+    server.log("send url=<" + url + ">")
+    server.log("send headers=<" + headersJson + ">")
+    server.log("send json=<" + bodyJson + ">")
+    http.post(url, headers, bodyJson).sendsync()
+}
+
+function getGWaaSJson(gwaasFeedData) {
+    local uuid = math.rand() + "-" + math.rand() + "-" + math.rand()
+    local date = date();
+    local timestamp = format("%04d-%02d-%02dT%02d:%02d:%02d.000+0000", date.year, date.month+1, date.day, date.hour, date.min, date.sec);
+    
+    local json = gwaasFeedData["json"]
+    json["device_name"] <- gwaasFeedData["macAddress"]
+    json["device_name_type"] <- "mac"
+    
+    local json = { 
+        "id": uuid,
+        "type": "reading",
+        "timestamp": timestamp,
+        "data": json,
+        "headers": {
+        }
+    }
+    return json    
+}
+
+function getXivelyJson(data) {
+    local json = {
+        "version":"1.0.0",
+        "datastreams": data
+    }
+    return json
+}
