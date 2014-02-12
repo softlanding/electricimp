@@ -1,6 +1,6 @@
 device.on("sendtoapp", function(gwaasFeedData) {
     local url = "http://gwaas-prod-ap1.numerexfast.com:8080/numerex_services/delivery/message/message"
-    local headers = { "Content-Type": "application/json", "Authorization":"Basic YW5kcmV3aXN0aGVjb29sZXN0OmFuZHJld2lzdGhlY29vbGVzdA==" }
+    local headers = { "Content-Type": "application/json", "Authorization":"Basic [ATOKEN]" }
     server.log("----")
     server.log("SEND TO APP")
     postToGWaaSStyleApp(url, headers, gwaasFeedData)
@@ -8,16 +8,16 @@ device.on("sendtoapp", function(gwaasFeedData) {
 
 device.on("sendtogwaas", function(gwaasFeedData) {
     local url = "https://gwaas-dev-sv1.numerexdevops.com/raw-messages/route"
-    local headers = { "Content-Type": "application/json", "Authorization":"Basic Z3dhYXM6ZTlBWFhNcVU=" }
+    local headers = { "Content-Type": "application/json", "Authorization":"Basic [ATOKEN]" }
     server.log("----")
     server.log("SEND TO GWAAS")
     postToGWaaSStyleApp(url, headers, gwaasFeedData)
 })
 
 device.on("sendtoxively", function (xivelyFeedData) {
-    local apiKey = "nxYuV4hsrSlPdKJHc5toUdnazckQEqEa9PBF6Vi8YSHYhpjv"
+    local apiKey = "[YOURAPIKEY]"
     //local url = "https://api.xively.com/v2/feeds/" + xivelyFeedData["feedKey"] + ".json";
-    local url = "https://api.xively.com/v2/feeds/" + "1853039415" + ".json";
+    local url = "https://api.xively.com/v2/feeds/" + "[YOURFEED]" + ".json";
     local headers = {"X-ApiKey":apiKey, "Content-Type":"application/json", "User-Agent":"Xively-Imp-Lib/1.0"}
     
     local bodyJson = http.jsonencode(xivelyFeedData["json"])
